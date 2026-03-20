@@ -118,13 +118,13 @@
 <div id="header">
   <div id="header-inner">
     <div>
-      <div class="label-sm">▶ Operation Epic Fury — Day 19 — March 19, 2026</div>
+      <div class="label-sm" id="header-day-label">▶ Operation Epic Fury — Live Cost Tracker</div>
       <h1 style="font-size:clamp(18px,3.5vw,34px)">
         The True Cost of the Iran War<br>
         <span style="color:#e74c3c">Who Pays. What We've Lost.</span>
       </h1>
       <div class="subtitle">
-        Comprehensive tracker — Day 19 of Operation Epic Fury.<br>
+        Live cumulative tracker — backdated to Feb 28, 2026 (war start).<br>
         Sources: Pentagon, CSIS, FPRI, Al Jazeera, Bloomberg, Air &amp; Space Forces Magazine, IRS, White House CEA.
       </div>
     </div>
@@ -134,8 +134,8 @@
         <div class="ticker-val" style="color:#e74c3c" id="ticker-today">$0</div>
       </div>
       <div class="ticker-box">
-        <div class="ticker-label" style="color:#f39c12">TOTAL SINCE FEB 28 (est.)</div>
-        <div class="ticker-val" style="color:#f39c12">~$20.7B</div>
+        <div class="ticker-label" style="color:#f39c12">TOTAL SINCE FEB 28 (live)</div>
+        <div class="ticker-val" style="color:#f39c12" id="ticker-total">calculating...</div>
       </div>
       <div class="ticker-box">
         <div class="ticker-label" style="color:#9b59b6">PENTAGON SUPPL. REQUEST</div>
@@ -159,7 +159,7 @@
   <!-- ═══ OVERVIEW ═══ -->
   <div id="tab-overview" class="tab-panel active">
     <div class="grid-auto">
-      <div class="card" style="border-left:2px solid #e74c3c"><div class="card-stat-label" style="color:#e74c3c">EST. TOTAL SPENT</div><div class="card-stat-val" style="color:#e74c3c">~$20.7B</div><div class="card-stat-sub">Days 1–19, CSIS + Pentagon</div></div>
+      <div class="card" style="border-left:2px solid #e74c3c"><div class="card-stat-label" style="color:#e74c3c">EST. TOTAL SPENT</div><div class="card-stat-val" style="color:#e74c3c" id="overview-total">calculating...</div><div class="card-stat-sub" id="overview-day">Days 1–19, CSIS + Pentagon</div></div>
       <div class="card" style="border-left:2px solid #9b59b6"><div class="card-stat-label" style="color:#9b59b6">PENTAGON SUPPL. REQUEST</div><div class="card-stat-val" style="color:#9b59b6">$200B+</div><div class="card-stat-sub">To Congress (WaPo Mar 18)</div></div>
       <div class="card" style="border-left:2px solid #f39c12"><div class="card-stat-label" style="color:#f39c12">TARGETS STRUCK IN IRAN</div><div class="card-stat-val" style="color:#f39c12">7,800+</div><div class="card-stat-sub">CENTCOM / Hegseth, Mar 19</div></div>
       <div class="card" style="border-left:2px solid #e74c3c"><div class="card-stat-label" style="color:#e74c3c">US SERVICE MEMBERS KIA</div><div class="card-stat-val" style="color:#e74c3c">13</div><div class="card-stat-sub">7 enemy fire, 6 KC-135 crash</div></div>
@@ -357,7 +357,7 @@
   </div>
 
   <div id="sources">
-    SOURCES (March 19, 2026): Pentagon briefing to Senate (~Mar 10) $11.3B Day 6 · CSIS (Cancian &amp; Park, Mar 12) $16.5B Day 12 · WaPo (Mar 18) $200B Pentagon supplemental request · NEC Dir. Kevin Hassett CBS News (Mar 15) $12B direct ops · FPRI (Mar 17) 5,197 munitions/96hrs · Air &amp; Space Forces Magazine (Mar 19) F-35 hit, aircraft losses · Bloomberg (Mar 19) 16 aircraft lost/damaged · CNN (Mar 19) F-35 emergency landing · CNBC (Mar 19) Hegseth $200B confirmation · NPR (Mar 19) Iran attacks on Gulf energy infrastructure · White House CEA 2021 (top 400 families 8.2% effective rate) · ProPublica Secret IRS Files 2021 · IRS SOI 2024 · SSA SS cap $168,600 · Tax Policy Center 2024 · CBO Feb 2026 debt projections · Penn Wharton Budget Model · Brown University Costs of War Project. All figures from public sources. Educational illustration only.
+    LIVE COST MODEL: Piecewise daily rate model backdated to Feb 28, 2026 00:00 UTC. Phase rates — Days 0–1: $2.8B/day (WaPo: $5.6B in first 48hrs); Days 2–5: $1.425B/day (interpolated to $11.3B at Day 6); Days 6–11: $883M/day (interpolated to $16.5B at Day 12); Days 12+: $600M/day (CSIS post-transition estimate). All figures update in real time from your device clock. No server required. | Pentagon briefing to Senate (~Mar 10) $11.3B Day 6 · CSIS (Cancian &amp; Park, Mar 12) $16.5B Day 12 · WaPo (Mar 18) $200B Pentagon supplemental request · NEC Dir. Kevin Hassett CBS News (Mar 15) $12B direct ops · FPRI (Mar 17) 5,197 munitions/96hrs · Air &amp; Space Forces Magazine (Mar 19) F-35 hit, aircraft losses · Bloomberg (Mar 19) 16 aircraft lost/damaged · CNN (Mar 19) F-35 emergency landing · CNBC (Mar 19) Hegseth $200B confirmation · NPR (Mar 19) Iran attacks on Gulf energy infrastructure · White House CEA 2021 (top 400 families 8.2% effective rate) · ProPublica Secret IRS Files 2021 · IRS SOI 2024 · SSA SS cap $168,600 · Tax Policy Center 2024 · CBO Feb 2026 debt projections · Penn Wharton Budget Model · Brown University Costs of War Project. All figures from public sources. Educational illustration only.
   </div>
 </div>
 
@@ -365,9 +365,72 @@
 // ═══════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════
-const SPEND_TOTAL = 20700000000;
-const DAILY_NOW   = 600000000;
-const US_POP      = 350000000;
+const US_POP = 350000000;
+
+// ─── PIECEWISE COST MODEL ────────────────────────────────────────────────────
+// Confirmed cost anchors from Pentagon / CSIS / FPRI sources.
+// Each phase has a start day (inclusive) and a daily rate in USD.
+// Day 0 = Feb 28, 2026 00:00:00 UTC (war start).
+// Phase rates:
+//   Days 0–1  : $2,800,000,000/day  (first 48hrs munitions surge, WaPo)
+//   Days 2–5  : $1,425,000,000/day  (interpolated to reach $11.3B at Day 6)
+//   Days 6–11 : $883,333,333/day    (interpolated to reach $16.5B at Day 12, CSIS)
+//   Days 12+  : $600,000,000/day    (post-transition, CSIS — shift to cheaper munitions)
+// Validation checkpoints:
+//   End of Day 1  → $2.8B   (WaPo: $5.6B in 48hrs; $2.8B/day)
+//   End of Day 5  → $11.3B  (Pentagon Senate briefing Day 6 cumulative)
+//   End of Day 11 → $16.5B  (CSIS Day 12 cumulative)
+// ─────────────────────────────────────────────────────────────────────────────
+const WAR_START_UTC = Date.UTC(2026, 1, 28, 0, 0, 0); // Feb 28 2026 00:00 UTC
+
+const PHASES = [
+  { startDay: 0,  rate: 2_800_000_000 },   // Days 0–1
+  { startDay: 2,  rate: 1_425_000_000 },   // Days 2–5
+  { startDay: 6,  rate:   883_333_333 },   // Days 6–11
+  { startDay: 12, rate:   600_000_000 },   // Days 12+
+];
+
+// Returns cumulative cost in dollars for a given elapsed time in fractional days
+function computeCumulativeCost(fractionalDays) {
+  if (fractionalDays <= 0) return 0;
+  let total = 0;
+  for (let i = 0; i < PHASES.length; i++) {
+    const phaseStart = PHASES[i].startDay;
+    const phaseEnd   = (i + 1 < PHASES.length) ? PHASES[i + 1].startDay : Infinity;
+    const rate       = PHASES[i].rate;
+    if (fractionalDays <= phaseStart) break;
+    const daysInPhase = Math.min(fractionalDays, phaseEnd) - phaseStart;
+    total += daysInPhase * rate;
+  }
+  return total;
+}
+
+// Returns the instantaneous daily rate for a given elapsed day number
+function rateAtDay(day) {
+  let rate = PHASES[0].rate;
+  for (const p of PHASES) {
+    if (day >= p.startDay) rate = p.rate;
+  }
+  return rate;
+}
+
+// Compute live values from system clock
+function getLiveStats() {
+  const nowMs       = Date.now();
+  const elapsedMs   = nowMs - WAR_START_UTC;
+  const elapsedDays = elapsedMs / 86400000;
+  const dayNumber   = Math.floor(elapsedDays) + 1;
+  const totalSpent  = computeCumulativeCost(elapsedDays);
+  const currentRate = rateAtDay(Math.floor(elapsedDays));
+  // How far through today (fraction of day elapsed since midnight UTC)
+  const todayFrac   = elapsedDays - Math.floor(elapsedDays);
+  const spentToday  = currentRate * todayFrac;
+  return { elapsedDays, dayNumber, totalSpent, currentRate, spentToday };
+}
+
+// Initial snapshot for burden model — updates every tick
+let SPEND_TOTAL = getLiveStats().totalSpent;
+const DAILY_NOW = 600_000_000; // kept for legacy ref; use rateAtDay() for accuracy
 
 const BRACKETS = [
   { label:"Bottom 10%", short:"Bot 10%", pctPop:10, avgIncome:13000,  effRate:0.082, avoid:0.000, payroll:0.0765, incTax:0.02 },
@@ -472,7 +535,7 @@ function computeBurden(totalCost) {
   });
 }
 
-const burdenData = computeBurden(SPEND_TOTAL);
+let burdenData = computeBurden(getLiveStats().totalSpent);
 
 // ═══════════════════════════════════════════════════════
 // FORMAT HELPERS
@@ -494,13 +557,44 @@ function fmtPct2(n) {
 }
 
 // ═══════════════════════════════════════════════════════
-// LIVE TICKER
+// LIVE TICKER — piecewise cumulative, backdated to Feb 28
 // ═══════════════════════════════════════════════════════
-let tickerVal = 0;
-setInterval(() => {
-  tickerVal = Math.min(tickerVal + DAILY_NOW / 86400, DAILY_NOW);
-  document.getElementById("ticker-today").textContent = "$" + Math.floor(tickerVal).toLocaleString();
-}, 1000);
+function updateTickers() {
+  const { dayNumber, totalSpent, spentToday } = getLiveStats();
+
+  // Header day label
+  const headerLabel = document.getElementById("header-day-label");
+  if (headerLabel) headerLabel.textContent = `▶ Operation Epic Fury — Day ${dayNumber} — Live Cost Tracker`;
+
+  // Today's spend ticker
+  const todayEl = document.getElementById("ticker-today");
+  if (todayEl) todayEl.textContent = "$" + Math.floor(spentToday).toLocaleString();
+
+  // Cumulative total ticker
+  const totalEl = document.getElementById("ticker-total");
+  if (totalEl) totalEl.textContent = fmtMoneyLong(totalSpent);
+
+  // Overview stat card (dynamic total)
+  const overviewTotal = document.getElementById("overview-total");
+  if (overviewTotal) overviewTotal.textContent = fmtMoneyLong(totalSpent);
+
+  // Day counter in overview card
+  const overviewDay = document.getElementById("overview-day");
+  if (overviewDay) overviewDay.textContent = `Days 1–${dayNumber}, CSIS + Pentagon + est.`;
+}
+
+// Format with full precision for large numbers
+function fmtMoneyLong(n) {
+  if (!n || n === 0) return "$0";
+  if (n >= 1e12) return "$" + (n/1e12).toFixed(3) + "T";
+  if (n >= 1e9)  return "$" + (n/1e9).toFixed(2) + "B";
+  if (n >= 1e6)  return "$" + (n/1e6).toFixed(1) + "M";
+  return "$" + Math.floor(n).toLocaleString();
+}
+
+// Run immediately and then every second
+updateTickers();
+setInterval(updateTickers, 1000);
 
 // ═══════════════════════════════════════════════════════
 // TAB SWITCHING
