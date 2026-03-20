@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operation Epic Fury — War Cost & Tax Burden Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050505;color:#e0e0e0;font-family:'Courier New',monospace;padding-bottom:60px}
+  h1{font-family:Georgia,serif;font-weight:normal;line-height:1.15}
+  /* HEADER */
+  #header{border-bottom:2px solid #e74c3c;padding:22px 28px 18px;position:relative;overflow:hidden}
+  #header::before{content:'';position:absolute;inset:0;opacity:.18;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 39px,#1a0000 39px,#1a0000 40px)}
+  #header-inner{position:relative;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+  .label-sm{color:#e74c3c;font-size:10px;letter-spacing:4px;margin-bottom:6px;text-transform:uppercase}
+  .subtitle{color:#555;font-size:11px;margin-top:8px;max-width:560px;line-height:1.65}
+  /* TICKERS */
+  #tickers{display:flex;flex-direction:column;gap:2px;min-width:200px}
+  .ticker-box{background:#0d0d0d;border:1px solid #1a1a1a;padding:10px 16px}
+  .ticker-label{font-size:9px;letter-spacing:3px;margin-bottom:3px}
+  .ticker-val{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+  /* TABS */
+  #tabs{display:flex;gap:2px;margin-bottom:22px;flex-wrap:wrap}
+  .tab-btn{padding:8px 14px;background:#111;color:#555;border:1px solid #222;cursor:pointer;
+    font-size:11px;letter-spacing:1px;font-family:'Courier New',monospace;transition:all .15s}
+  .tab-btn.active{background:#e74c3c;color:#fff;border-color:#e74c3c}
+  .tab-btn:hover:not(.active){background:#1a1a1a;color:#aaa}
+  /* CONTENT */
+  #content{padding:22px 28px;max-width:1100px;margin:0 auto}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+  /* CARDS */
+  .grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px;margin-bottom:20px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:20px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:20px}
+  .card{background:#0d0d0d;padding:14px 16px}
+  .card-red{background:#1a0000;border-left:3px solid #e74c3c}
+  .card-green{background:#001a05;border-left:3px solid #2ecc71}
+  .card-blue{background:#000d1a;border-left:3px solid #3498db}
+  .card-orange{background:#0a0800;border-left:3px solid #f39c12}
+  .card-purple{background:#0a000a;border-left:3px solid #9b59b6}
+  .card-stat-label{font-size:9px;letter-spacing:3px;margin-bottom:6px}
+  .card-stat-val{font-size:22px;font-weight:bold}
+  .card-stat-sub{font-size:10px;margin-top:4px;color:#555}
+  /* BREAKING NEWS */
+  #breaking{background:#100000;border:1px solid #e74c3c;padding:16px 20px;margin-bottom:20px}
+  .news-item{display:flex;gap:12px;padding-bottom:10px;border-bottom:1px solid #1a1a1a;margin-bottom:10px}
+  .news-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .news-icon{font-size:18px;flex-shrink:0;line-height:1.4}
+  .news-text{color:#bbb;font-size:11px;line-height:1.65}
+  /* SECTION LABEL */
+  .section-label{color:#555;font-size:9px;letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+  /* CHART CONTAINERS */
+  .chart-wrap{background:#0d0d0d;border:1px solid #111;padding:16px;margin-bottom:20px}
+  canvas{max-width:100%}
+  /* EQUIPMENT TABLE */
+  #equip-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:20px}
+  #equip-table th{padding:8px 10px;color:#444;font-weight:normal;text-align:left;font-size:9px;letter-spacing:1px;border-bottom:1px solid #e74c3c}
+  #equip-table td{padding:10px 10px;border-bottom:1px solid #0d0d0d}
+  #equip-table tr:nth-child(even){background:#080808}
+  #equip-table tr:nth-child(odd){background:#0d0d0d}
+  .confirmed{color:#27ae60;font-size:9px}
+  .estimated{color:#555;font-size:9px}
+  /* TAX TABLE */
+  #tax-table{width:100%;border-collapse:collapse;font-size:11px;overflow-x:auto;display:block}
+  #tax-table th{padding:8px 10px;color:#444;font-weight:normal;text-align:left;font-size:9px;letter-spacing:1px;border-bottom:1px solid #e74c3c;white-space:nowrap}
+  #tax-table td{padding:9px 10px;white-space:nowrap}
+  #tax-table tr:nth-child(even){background:#080808}
+  #tax-table tr:nth-child(odd){background:#0d0d0d}
+  /* TIMELINE */
+  .timeline-item{display:flex;gap:0;position:relative;margin-bottom:4px}
+  .tl-dot-col{display:flex;flex-direction:column;align-items:center;margin-right:16px;min-width:16px}
+  .tl-dot{width:12px;height:12px;border-radius:50%;margin-top:14px;flex-shrink:0;border:2px solid #222}
+  .tl-line{width:2px;flex:1;background:#1a1a1a;min-height:20px}
+  .tl-card{background:#0d0d0d;border:1px solid #1a1a1a;padding:12px 16px;flex:1;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .tl-card.today{background:#150000;border-color:#e74c3c}
+  /* VIEW TOGGLE */
+  .view-btns{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .view-btn{padding:6px 14px;background:#111;color:#555;border:1px solid #222;cursor:pointer;
+    font-size:10px;letter-spacing:1px;font-family:'Courier New',monospace;transition:all .15s}
+  .view-btn.active{background:#e74c3c;color:#fff;border-color:#e74c3c}
+  /* PROJECTION GRID */
+  .proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+  .proj-item{padding-left:12px}
+  /* FUNDING SECTION */
+  .funding-block{background:#0d0d0d;border:1px solid #1a1a1a;padding:16px 20px;margin-bottom:14px}
+  .funding-title{font-size:13px;font-weight:bold;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1a1a1a}
+  .funding-body{font-size:11px;line-height:1.8;color:#aaa}
+  .funding-body strong{color:#e0e0e0}
+  .funding-body .hi-red{color:#e74c3c}
+  .funding-body .hi-orange{color:#f39c12}
+  .funding-body .hi-green{color:#2ecc71}
+  .funding-body .hi-purple{color:#9b59b6}
+  /* COMPARISON */
+  .alt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .alt-item{border-left:2px solid #222;padding-left:12px}
+  .alt-val{color:#2ecc71;font-size:16px;font-weight:bold}
+  .alt-label{color:#aaa;font-size:11px}
+  .alt-sub{color:#333;font-size:9px;margin-top:2px}
+  /* SOURCES */
+  #sources{margin-top:36px;color:#222;font-size:9px;line-height:2;border-top:1px solid #111;padding-top:16px}
+  /* RESPONSIVE */
+  @media(max-width:600px){
+    .grid-3{grid-template-columns:1fr 1fr}
+    .grid-2{grid-template-columns:1fr}
+    #header-inner{flex-direction:column}
+    #tickers{flex-direction:row;flex-wrap:wrap}
+    .ticker-box{flex:1;min-width:140px}
+    .ticker-val{font-size:16px}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="header-inner">
+    <div>
+      <div class="label-sm">▶ Operation Epic Fury — Day 19 — March 19, 2026</div>
+      <h1 style="font-size:clamp(18px,3.5vw,34px)">
+        The True Cost of the Iran War<br>
+        <span style="color:#e74c3c">Who Pays. What We've Lost.</span>
+      </h1>
+      <div class="subtitle">
+        Comprehensive tracker — Day 19 of Operation Epic Fury.<br>
+        Sources: Pentagon, CSIS, FPRI, Al Jazeera, Bloomberg, Air &amp; Space Forces Magazine, IRS, White House CEA.
+      </div>
+    </div>
+    <div id="tickers">
+      <div class="ticker-box">
+        <div class="ticker-label" style="color:#e74c3c">SPENT TODAY (est.)</div>
+        <div class="ticker-val" style="color:#e74c3c" id="ticker-today">$0</div>
+      </div>
+      <div class="ticker-box">
+        <div class="ticker-label" style="color:#f39c12">TOTAL SINCE FEB 28 (est.)</div>
+        <div class="ticker-val" style="color:#f39c12">~$20.7B</div>
+      </div>
+      <div class="ticker-box">
+        <div class="ticker-label" style="color:#9b59b6">PENTAGON SUPPL. REQUEST</div>
+        <div class="ticker-val" style="color:#9b59b6">$200B+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS + CONTENT -->
+<div id="content">
+  <div id="tabs">
+    <button class="tab-btn active" onclick="showTab('overview')">War Overview</button>
+    <button class="tab-btn" onclick="showTab('burden')">Tax Burden</button>
+    <button class="tab-btn" onclick="showTab('equipment')">Equipment Losses</button>
+    <button class="tab-btn" onclick="showTab('munitions')">Cost Breakdown</button>
+    <button class="tab-btn" onclick="showTab('timeline')">Spending Timeline</button>
+    <button class="tab-btn" onclick="showTab('funding')">Where Money Comes From</button>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="grid-auto">
+      <div class="card" style="border-left:2px solid #e74c3c"><div class="card-stat-label" style="color:#e74c3c">EST. TOTAL SPENT</div><div class="card-stat-val" style="color:#e74c3c">~$20.7B</div><div class="card-stat-sub">Days 1–19, CSIS + Pentagon</div></div>
+      <div class="card" style="border-left:2px solid #9b59b6"><div class="card-stat-label" style="color:#9b59b6">PENTAGON SUPPL. REQUEST</div><div class="card-stat-val" style="color:#9b59b6">$200B+</div><div class="card-stat-sub">To Congress (WaPo Mar 18)</div></div>
+      <div class="card" style="border-left:2px solid #f39c12"><div class="card-stat-label" style="color:#f39c12">TARGETS STRUCK IN IRAN</div><div class="card-stat-val" style="color:#f39c12">7,800+</div><div class="card-stat-sub">CENTCOM / Hegseth, Mar 19</div></div>
+      <div class="card" style="border-left:2px solid #e74c3c"><div class="card-stat-label" style="color:#e74c3c">US SERVICE MEMBERS KIA</div><div class="card-stat-val" style="color:#e74c3c">13</div><div class="card-stat-sub">7 enemy fire, 6 KC-135 crash</div></div>
+      <div class="card" style="border-left:2px solid #f39c12"><div class="card-stat-label" style="color:#f39c12">US SERVICE MEMBERS WIA</div><div class="card-stat-val" style="color:#f39c12">200+</div><div class="card-stat-sub">CENTCOM, Mar 19</div></div>
+      <div class="card" style="border-left:2px solid #9b59b6"><div class="card-stat-label" style="color:#9b59b6">AIRCRAFT LOST/DAMAGED</div><div class="card-stat-val" style="color:#9b59b6">~20+</div><div class="card-stat-sub">Bloomberg, Air &amp; Space Forces</div></div>
+      <div class="card" style="border-left:2px solid #3498db"><div class="card-stat-label" style="color:#3498db">IRANIAN SHIPS HIT</div><div class="card-stat-val" style="color:#3498db">120+</div><div class="card-stat-sub">Damaged or sunk, CENTCOM</div></div>
+      <div class="card" style="border-left:2px solid #f39c12"><div class="card-stat-label" style="color:#f39c12">MUNITIONS FIRED (96HRS)</div><div class="card-stat-val" style="color:#f39c12">5,197+</div><div class="card-stat-sub">35 weapon types, FPRI</div></div>
+    </div>
+
+    <div id="breaking">
+      <div class="section-label" style="color:#e74c3c;margin-bottom:12px">▶ BREAKING — MARCH 19, 2026 (TODAY)</div>
+      <div class="news-item">
+        <div class="news-icon">✈️</div>
+        <div class="news-text"><strong style="color:#e74c3c">F-35A STRUCK BY IRAN:</strong> U.S. F-35A struck by Iranian fire over Iran — emergency landing at U.S. base. Pilot stable. IRGC claims credit. First U.S. aircraft hit by enemy fire in this conflict. (CNN, CENTCOM, Air &amp; Space Forces)</div>
+      </div>
+      <div class="news-item">
+        <div class="news-icon">💰</div>
+        <div class="news-text"><strong style="color:#9b59b6">$200B REQUEST CONFIRMED:</strong> Def. Sec. Hegseth confirms Pentagon is seeking ~$200B supplemental from Congress: "It takes money to kill bad guys." Would fund replenishment and expansion beyond spending to date. (CNBC, Mar 19)</div>
+      </div>
+      <div class="news-item">
+        <div class="news-icon">🎯</div>
+        <div class="news-text"><strong style="color:#f39c12">7,800+ TARGETS STRUCK:</strong> Hegseth: U.S. has struck 7,800+ targets in Iran. "Today will be the largest strike package yet, just like yesterday was." Operations escalating, not winding down. (CENTCOM)</div>
+      </div>
+      <div class="news-item">
+        <div class="news-icon">⛽</div>
+        <div class="news-text"><strong style="color:#3498db">ENERGY MARKETS RATTLED:</strong> Iran launched overnight attacks on Qatar LNG complex, UAE gas field, Saudi oil refinery. Strait of Hormuz partially closed. Brent crude: $119.50/barrel. (NPR, Mar 19)</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="section-label">▶ WHAT $20.7B COULD ALTERNATIVELY FUND</div>
+      <div class="alt-grid">
+        <div class="alt-item"><div class="alt-val">6.3×</div><div class="alt-label">Years of National Park Service funding</div><div class="alt-sub">NPS annual budget $3.3B</div></div>
+        <div class="alt-item"><div class="alt-val">1,592,307</div><div class="alt-label">Children's annual child care</div><div class="alt-sub">At $13K/child/yr avg</div></div>
+        <div class="alt-item"><div class="alt-val">2,798,566</div><div class="alt-label">Pell Grants for low-income students</div><div class="alt-sub">At $7,395 max award</div></div>
+        <div class="alt-item"><div class="alt-val">2,274,725</div><div class="alt-label">Annual Medicaid enrollees</div><div class="alt-sub">At $9,100/enrollee/yr (CBO)</div></div>
+        <div class="alt-item"><div class="alt-val">287,316</div><div class="alt-label">Public school teacher salaries for 1 year</div><div class="alt-sub">At $72,030 avg salary</div></div>
+        <div class="alt-item"><div class="alt-val">16%</div><div class="alt-label">Of all US Ukraine aid (2022–2025)</div><div class="alt-sub">$131.5B over 4 years (Kiel)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BURDEN ═══ -->
+  <div id="tab-burden" class="tab-panel">
+    <div class="grid-2">
+      <div class="card card-red">
+        <div class="card-stat-label" style="color:#e74c3c">BOTTOM 10% EARNER (~$13K/yr)</div>
+        <div class="card-stat-val" style="color:#fff" id="b10-share">calculating...</div>
+        <div style="color:#e74c3c;font-size:13px;margin-top:4px" id="b10-pct">...</div>
+        <div class="card-stat-sub">Full 7.65% payroll on every dollar · zero avoidance</div>
+      </div>
+      <div class="card card-green">
+        <div class="card-stat-label" style="color:#2ecc71">TOP 1% EARNER (~$1.6M/yr)</div>
+        <div class="card-stat-val" style="color:#fff" id="t1-share">calculating...</div>
+        <div style="color:#2ecc71;font-size:13px;margin-top:4px" id="t1-pct">...</div>
+        <div class="card-stat-sub">Effective rate ~8.2% after avoidance · 0.3% payroll</div>
+      </div>
+    </div>
+
+    <div class="view-btns">
+      <button class="view-btn active" onclick="setBurdenView('perPerson')">War Cost Per Person ($)</button>
+      <button class="view-btn" onclick="setBurdenView('pctOfIncome')">% of Annual Income</button>
+    </div>
+    <div class="section-label" id="burden-chart-label">▶ CUMULATIVE WAR BURDEN (~$20.7B EST.) — COST PER PERSON BY BRACKET</div>
+    <div class="chart-wrap"><canvas id="burdenChart" height="280"></canvas></div>
+
+    <div class="section-label">▶ FULL BREAKDOWN BY INCOME BRACKET</div>
+    <div style="overflow-x:auto">
+      <table id="tax-table">
+        <thead>
+          <tr><th>Bracket</th><th>Avg Income</th><th>Effective Rate</th><th>Payroll %</th><th>War Cost Share</th><th>% of Income</th></tr>
+        </thead>
+        <tbody id="tax-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="chart-wrap" style="margin-top:20px">
+      <div class="section-label">▶ PAYROLL TAX REGRESSIVITY — SS CAP $168,600 (2024)</div>
+      <p style="color:#666;font-size:11px;margin-bottom:14px;line-height:1.7">The Social Security tax (6.2%) only applies to the first $168,600 of wages. A minimum-wage worker pays 6.2% on every dollar. Someone earning $1.6M hits the cap on 10% of their income — the rest escapes entirely.</p>
+      <canvas id="payrollChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══ EQUIPMENT LOSSES ═══ -->
+  <div id="tab-equipment" class="tab-panel">
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="card" style="border-left:3px solid #e74c3c">
+        <div class="card-stat-label" style="color:#e74c3c">CONFIRMED EQUIPMENT LOSSES</div>
+        <div class="card-stat-val" style="color:#e74c3c" id="total-equip-val">$2.98B+</div>
+        <div class="card-stat-sub">Replacement cost estimate</div>
+      </div>
+      <div class="card card-purple">
+        <div class="card-stat-label" style="color:#9b59b6">AIRCRAFT LOST/DAMAGED</div>
+        <div class="card-stat-val" style="color:#fff">3 F-15E · 1 F-35A · 1 KC-135</div>
+        <div class="card-stat-sub">+ ~12–16 MQ-9 Reaper drones</div>
+      </div>
+      <div class="card card-blue">
+        <div class="card-stat-label" style="color:#3498db">RADAR SYSTEMS DESTROYED</div>
+        <div class="card-stat-val" style="color:#fff">6 systems</div>
+        <div class="card-stat-sub">4× THAAD radar, 1× early warning, 1× tactical</div>
+      </div>
+    </div>
+
+    <div class="section-label">▶ CONFIRMED LOSSES — REPLACEMENT COSTS</div>
+    <table id="equip-table">
+      <thead>
+        <tr>
+          <th>System</th><th>Qty</th><th>Unit Cost</th><th>Total Loss</th><th>Cause / Date</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="equip-tbody"></tbody>
+    </table>
+
+    <div class="funding-block" style="margin-top:20px">
+      <div class="section-label">▶ MUNITIONS INVENTORY CRISIS (FPRI / CSIS)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px" id="munitions-inventory"></div>
+    </div>
+  </div>
+
+  <!-- ═══ COST BREAKDOWN ═══ -->
+  <div id="tab-munitions" class="tab-panel">
+    <div class="section-label">▶ WHERE THE MONEY WENT — DAYS 1–12 (CSIS / FPRI / WaPo)</div>
+    <div class="chart-wrap"><canvas id="costChart" height="320"></canvas></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:20px" id="cost-cards"></div>
+
+    <div class="funding-block" style="margin-top:20px">
+      <div class="section-label">▶ UNIT COSTS — WEAPONS USED IN OPERATION EPIC FURY</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:10px" id="weapon-costs"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <div id="tab-timeline" class="tab-panel">
+    <div class="section-label">▶ SPENDING TIMELINE — CONFIRMED MILESTONES</div>
+    <div id="timeline-items"></div>
+
+    <div class="funding-block" style="margin-top:16px">
+      <div class="section-label">▶ FORWARD PROJECTIONS (EXPERT ESTIMATES)</div>
+      <div class="proj-grid" id="projections" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ FUNDING ═══ -->
+  <div id="tab-funding" class="tab-panel">
+    <div class="section-label">▶ WHERE THE MONEY HAS COME FROM · WHERE IT WILL COME FROM</div>
+
+    <div class="funding-block">
+      <div class="funding-title" style="color:#f39c12">PHASE 1 — Days 1–19: Existing Budget Drawdown (No New Appropriation)</div>
+      <div class="funding-body">
+        The first <strong>~$20.7B</strong> has been spent with <span class="hi-red">no new congressional vote</span>. Three existing channels are being used:<br><br>
+        <strong>1. FY2026 Pentagon Base Budget ($856B authorized):</strong> Congress authorized ~$856B for the Pentagon in FY2026. The President has broad executive authority to direct existing funds toward active combat without a new appropriation. No war-specific bill has passed yet.<br><br>
+        <strong>2. Pre-positioned Middle East drawdown authority:</strong> The April 2024 Israel Security Supplemental Appropriations Act (H.R.8034) appropriated <span class="hi-orange">$17.23B</span> for CENTCOM operations, missile defense, FMF, and ammunition — available through FY2029. The Pentagon is accelerating execution of these funds into FY2026.<br><br>
+        <strong>3. Trump's 2025 "Big Beautiful Bill" defense boost:</strong> The reconciliation mega-bill that paired $4.8T in tax cuts with $1.4T in spending cuts included additional Pentagon funding now being drawn upon — while adding <span class="hi-red">$3.4T to the national debt</span> over ten years (CBO).
+      </div>
+    </div>
+
+    <div class="funding-block">
+      <div class="funding-title" style="color:#9b59b6">PHASE 2 — The $200B Supplemental: Three Paths, All Contested</div>
+      <div class="funding-body">
+        The Pentagon has asked the White House to approve a <span class="hi-purple">$200B+ supplemental request</span> to Congress — nearly 23% of the entire annual Pentagon budget.<br><br>
+        <strong>Path 1 — Regular supplemental appropriation:</strong> Requires 60 Senate votes to overcome a filibuster. Democrats are not expected to support funding for a war they oppose. <span class="hi-red">Likely to fail this route.</span><br><br>
+        <strong>Path 2 — Budget reconciliation ("Reconciliation 2.0"):</strong> Bypasses the 60-vote threshold with a simple majority. Some Republicans see the Pentagon request as a catalyst: "This is our reason to go to reconciliation 2.0 immediately" (Rep. Keith Self, R-TX). But this requires near-unanimous House Republican support — a tall task — and fiscal hawks demand offsets: "It needs to be paid for" (Rep. Andrew Clyde, R-GA, Freedom Caucus).<br><br>
+        <strong>Path 3 — Deficit borrowing (most likely in practice):</strong> The national debt has surged past <span class="hi-red">$39 trillion</span>. Congress has not authorized the war. Growing bipartisan unease makes a clean authorization unlikely.
+      </div>
+    </div>
+
+    <div class="funding-block">
+      <div class="funding-title" style="color:#e74c3c">PHASE 3 — The Debt: Who Actually Pays in the Long Run</div>
+      <div class="funding-body">
+        All roads lead to deficit spending — and deficit spending is a deferred, regressive tax.<br><br>
+        <strong>The debt picture before the war:</strong><br>
+        • CBO (Feb 2026): Deficit projected at <span class="hi-red">$1.9T in FY2026</span>, swelling to $3.1T by 2036 — before war costs.<br>
+        • Debt held by the public: <strong>101% of GDP</strong> today → projected <strong>120% of GDP by 2036</strong>, eclipsing the post-WWII record of 106%.<br>
+        • <span class="hi-red">Net interest on the national debt: $1 trillion in FY2026</span> — $7,700 per household just to service the interest, before a single dollar of new war spending.<br><br>
+        <strong>How deficit war spending is regressive:</strong><br>
+        When the government borrows instead of taxing, the wealthy face no immediate income tax increase. The long-run costs are paid through:<br>
+        1. <span class="hi-orange">Cuts to domestic programs</span> (Medicaid, food stamps, education) that lower earners depend on — already demanded by fiscal hawks as offsets.<br>
+        2. <span class="hi-orange">Inflation</span> — war spending drives up energy costs and prices, eroding wage purchasing power. Lower earners spend a larger share of income on necessities.<br>
+        3. <span class="hi-orange">Future tax increases</span> — historically fall on the broadest base (payroll, sales, excise) not capital gains.<br><br>
+        Sen. Ruben Gallego (D-AZ), Iraq War veteran: <em>"When the bill comes to pay for the replenishment of interceptors and munitions, the Middle Eastern countries that we have been protecting need to pay for it. We aren't cutting more Medicaid, food stamps for protecting these countries in a war of choice not in our interest."</em>
+      </div>
+    </div>
+
+    <div class="funding-block">
+      <div class="funding-title" style="color:#3498db">LONG-RUN PRECEDENT: What Iraq &amp; Afghanistan Cost</div>
+      <div class="funding-body">
+        If the Iran War follows the pattern of post-9/11 wars:<br><br>
+        • Iraq + Afghanistan direct costs: <span class="hi-orange">$2.3 trillion</span> (CBO 2020)<br>
+        • Total cost including interest on debt borrowed to fund wars: <span class="hi-red">$6.4 trillion</span> (Brown University Costs of War Project)<br>
+        • Per U.S. taxpayer: approximately <span class="hi-red">$49,000</span> each — the vast majority never voted on, never raised in taxes, simply added to the national debt.<br>
+        • National Priorities Project (Koshgarian): a protracted Iran conflict could reach <span class="hi-red">$3 trillion+</span> using Iraq as a template.<br><br>
+        <strong>The bottom line:</strong> The bottom 90% of Americans pay for these wars through payroll taxes now, through inflation immediately, through domestic program cuts soon, and through debt service for decades. The top 1% — whose wealth grows in assets largely shielded from income taxation — bear the smallest proportional share.
+      </div>
+    </div>
+  </div>
+
+  <div id="sources">
+    SOURCES (March 19, 2026): Pentagon briefing to Senate (~Mar 10) $11.3B Day 6 · CSIS (Cancian &amp; Park, Mar 12) $16.5B Day 12 · WaPo (Mar 18) $200B Pentagon supplemental request · NEC Dir. Kevin Hassett CBS News (Mar 15) $12B direct ops · FPRI (Mar 17) 5,197 munitions/96hrs · Air &amp; Space Forces Magazine (Mar 19) F-35 hit, aircraft losses · Bloomberg (Mar 19) 16 aircraft lost/damaged · CNN (Mar 19) F-35 emergency landing · CNBC (Mar 19) Hegseth $200B confirmation · NPR (Mar 19) Iran attacks on Gulf energy infrastructure · White House CEA 2021 (top 400 families 8.2% effective rate) · ProPublica Secret IRS Files 2021 · IRS SOI 2024 · SSA SS cap $168,600 · Tax Policy Center 2024 · CBO Feb 2026 debt projections · Penn Wharton Budget Model · Brown University Costs of War Project. All figures from public sources. Educational illustration only.
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const SPEND_TOTAL = 20700000000;
+const DAILY_NOW   = 600000000;
+const US_POP      = 350000000;
+
+const BRACKETS = [
+  { label:"Bottom 10%", short:"Bot 10%", pctPop:10, avgIncome:13000,  effRate:0.082, avoid:0.000, payroll:0.0765, incTax:0.02 },
+  { label:"10–20%",     short:"10-20%",  pctPop:10, avgIncome:22000,  effRate:0.100, avoid:0.005, payroll:0.0765, incTax:0.05 },
+  { label:"20–30%",     short:"20-30%",  pctPop:10, avgIncome:31000,  effRate:0.120, avoid:0.010, payroll:0.0765, incTax:0.08 },
+  { label:"30–40%",     short:"30-40%",  pctPop:10, avgIncome:41000,  effRate:0.135, avoid:0.015, payroll:0.0765, incTax:0.10 },
+  { label:"40–50%",     short:"40-50%",  pctPop:10, avgIncome:53000,  effRate:0.155, avoid:0.020, payroll:0.0765, incTax:0.12 },
+  { label:"50–60%",     short:"50-60%",  pctPop:10, avgIncome:68000,  effRate:0.165, avoid:0.025, payroll:0.0765, incTax:0.14 },
+  { label:"60–70%",     short:"60-70%",  pctPop:10, avgIncome:88000,  effRate:0.175, avoid:0.030, payroll:0.0765, incTax:0.16 },
+  { label:"70–80%",     short:"70-80%",  pctPop:10, avgIncome:115000, effRate:0.185, avoid:0.040, payroll:0.0720, incTax:0.18 },
+  { label:"80–90%",     short:"80-90%",  pctPop:10, avgIncome:160000, effRate:0.195, avoid:0.050, payroll:0.0550, incTax:0.20 },
+  { label:"90–99%",     short:"90-99%",  pctPop:9,  avgIncome:300000, effRate:0.200, avoid:0.120, payroll:0.0220, incTax:0.24 },
+  { label:"Top 1%",     short:"Top 1%",  pctPop:1,  avgIncome:1600000,effRate:0.082, avoid:0.045, payroll:0.0030, incTax:0.37 },
+];
+
+const EQUIP = [
+  { item:"F-15E Strike Eagle",           qty:3,  unit:97000000,  cause:"Friendly fire (Kuwaiti F/A-18), Mar 2",              conf:true },
+  { item:"KC-135 Stratotanker",          qty:1,  unit:80000000,  cause:"Mid-air collision, W. Iraq, Mar 12 — 6 KIA",         conf:true },
+  { item:"F-35A Lightning II",           qty:1,  unit:110000000, cause:"Hit by Iranian fire, emergency landing, Mar 19",      conf:true },
+  { item:"MQ-9 Reaper drones",           qty:12, unit:30000000,  cause:"Shot down by Iranian air defenses",                  conf:true },
+  { item:"AN/TPY-2 THAAD Radar",         qty:4,  unit:350000000, cause:"Destroyed by Iranian missile/drone strikes",          conf:true },
+  { item:"AN/FPS-132 Early Warning Radar",qty:1, unit:800000000, cause:"Destroyed — Qatar (FPRI, Mar 10)",                   conf:true },
+  { item:"AN/TPS-59 Tactical Radar",     qty:1,  unit:50000000,  cause:"Destroyed — Bahrain (FPRI, Mar 10)",                 conf:true },
+  { item:"KC-135 (tail damage)",         qty:1,  unit:20000000,  cause:"Severe damage, landed safely; repair estimate",      conf:false },
+];
+
+const COST_BD = [
+  { cat:"Munitions (strike)",    cost:5600000000, color:"#e74c3c", detail:"Tomahawks (~375 used @$3.5M), GBU bombs, JASSM, MOP bunker busters — first 2 days" },
+  { cat:"Air Defense Interceptors", cost:5600000000, color:"#c0392b", detail:"943 Patriot PAC-3 @$3.7M, THAAD @$12.7M, SM-3/SM-6 — first 6 days" },
+  { cat:"Air Operations",        cost:1800000000, color:"#e67e22", detail:"200+ fighter jets @~$30M/day × 6 days. F/A-18, F-35, B-2, B-52" },
+  { cat:"Naval Operations",      cost:900000000,  color:"#f39c12", detail:"2 carrier strike groups + 14 destroyers @~$15M/day" },
+  { cat:"Equipment Losses",      cost:2980000000, color:"#8e44ad", detail:"Aircraft, drones, radar systems confirmed destroyed or damaged" },
+  { cat:"Pre-strike Buildup",    cost:630000000,  color:"#3498db", detail:"Repositioning forces, deploying naval vessels (Stimson Center)" },
+  { cat:"Base Damage & Other",   cost:200000000,  color:"#16a085", detail:"CSIS estimates $1.7B combat losses & base damage through Day 12" },
+];
+
+const TIMELINE = [
+  { label:"Feb 28",  today:false, event:"Operation Epic Fury begins", cum:0 },
+  { label:"Day 1–2", today:false, event:"$5.6B in munitions in 48 hours (WaPo)", cum:5600000000 },
+  { label:"Day 3–4", today:false, event:"$3.7B — first 100 hours (CSIS)", cum:7700000000 },
+  { label:"Day 6",   today:false, event:"$11.3B — Pentagon briefing to Senate (AP/NBC/Reuters)", cum:11300000000 },
+  { label:"Day 12",  today:false, event:"$16.5B — CSIS comprehensive estimate", cum:16500000000 },
+  { label:"Day 14",  today:false, event:"$12B+ — NEC Dir. Hassett, CBS News (direct ops only)", cum:17700000000 },
+  { label:"Day 18",  today:false, event:"$200B supplemental request — Pentagon to White House (WaPo)", cum:20100000000 },
+  { label:"TODAY",   today:true,  event:"Hegseth confirms $200B 'could move'; F-35 struck by Iran", cum:20700000000 },
+];
+
+const PROJECTIONS = [
+  { scenario:"4-week war (Trump's stated timeline)", cost:"$30–40B direct", source:"CSIS, Penn Wharton", col:"#f39c12" },
+  { scenario:"6–8 week war",                         cost:"$50–65B direct", source:"Penn Wharton (Kent Smetters)", col:"#e74c3c" },
+  { scenario:"War exceeds 2 months",                 cost:"$65B+ direct",   source:"Penn Wharton", col:"#c0392b" },
+  { scenario:"Full munitions replenishment",          cost:"$200B+",         source:"Pentagon request (WaPo Mar 18)", col:"#9b59b6" },
+  { scenario:"Total economic impact (oil, inflation)", cost:"Up to $210B",   source:"Penn Wharton Budget Model", col:"#9b59b6" },
+  { scenario:"If Iraq War is precedent",              cost:"$3 trillion+",   source:"National Priorities Project (Koshgarian)", col:"#c0392b" },
+];
+
+const WEAPONS = [
+  { name:"THAAD Interceptor",    cost:"$12.7M", note:"Lockheed Martin; critically scarce stockpile" },
+  { name:"Patriot PAC-3 MSE",    cost:"$3.7M",  note:"943 fired in first 96hrs (FPRI)" },
+  { name:"Tomahawk TLAM",        cost:"$3.5M",  note:"~375–400 used in first week" },
+  { name:"SM-6 Missile",         cost:"$4.8M",  note:"Air & sea defense" },
+  { name:"GBU-57 Bunker Buster", cost:"~$3M",   note:"Requires B-2; 8 of ~32 remaining used" },
+  { name:"SM-3 Block IIA",       cost:"$27M",   note:"Anti-ballistic missile" },
+  { name:"JASSM-ER",             cost:"$1.6M",  note:"Standoff strike weapon" },
+  { name:"ATACMS",               cost:"$1.5M",  note:"Production line cold since 2007" },
+  { name:"MQ-9 Reaper Drone",    cost:"$30M",   note:"~12–16 shot down" },
+  { name:"F-35A Lightning II",   cost:"$110M+", note:"One damaged by Iran today (Mar 19)" },
+  { name:"F-15E Strike Eagle",   cost:"$97M",   note:"3 lost to friendly fire (Mar 2)" },
+  { name:"KC-135 Stratotanker",  cost:"$80M",   note:"1 lost; 6 KIA (Mar 12)" },
+];
+
+const MUNITIONS_INV = [
+  { item:"Tomahawk cruise missiles",    used:"375–400",       risk:"High",     replenish:"53 months at current production (85/yr)" },
+  { item:"Patriot PAC-3 interceptors",  used:"943 fired",     risk:"Critical", replenish:"18 months of production consumed in 96hrs" },
+  { item:"THAAD interceptors",          used:"Significant",   risk:"Critical", replenish:"No new deliveries since Aug 2023" },
+  { item:"GBU-57 Bunker Busters (MOP)", used:"8 of ~32 left", risk:"Critical", replenish:"Replacement not expected before 2028" },
+  { item:"SM-3 / SM-6",                 used:"Large (classif.)",risk:"High",   replenish:"76 SM-3 + 125 SM-6 due FY2026" },
+  { item:"ATACMS ballistic missiles",   used:"~1/3 of stockpile",risk:"Critical","replenish":"Production line shut down 2007" },
+];
+
+// ═══════════════════════════════════════════════════════
+// COMPUTED BURDEN DATA
+// ═══════════════════════════════════════════════════════
+function computeBurden(totalCost) {
+  const caps = BRACKETS.map(b => {
+    const pop = (b.pctPop / 100) * US_POP;
+    const rate = Math.max(0, b.effRate - b.avoid);
+    return rate * b.avgIncome * pop;
+  });
+  const totalCap = caps.reduce((s,c) => s+c, 0);
+  return BRACKETS.map((b, i) => {
+    const pop = (b.pctPop / 100) * US_POP;
+    const share = caps[i] / totalCap;
+    const perPerson = (totalCost * share) / pop;
+    return {
+      ...b,
+      share: share * 100,
+      perPerson,
+      pctOfIncome: (perPerson / b.avgIncome) * 100,
+      netRate: Math.max(0, b.effRate - b.avoid),
+    };
+  });
+}
+
+const burdenData = computeBurden(SPEND_TOTAL);
+
+// ═══════════════════════════════════════════════════════
+// FORMAT HELPERS
+// ═══════════════════════════════════════════════════════
+function fmtMoney(n) {
+  if (!n || n === 0) return "$0";
+  if (n >= 1e9) return "$" + (n/1e9).toFixed(2) + "B";
+  if (n >= 1e6) return "$" + (n/1e6).toFixed(1) + "M";
+  if (n >= 1e3) return "$" + (n/1e3).toFixed(1) + "K";
+  return "$" + n.toFixed(2);
+}
+function fmtPct(n) {
+  if (!n || n < 0.0001) return "~0%";
+  return n.toFixed(4) + "%";
+}
+function fmtPct2(n) {
+  if (!n || n < 0.01) return "~0%";
+  return n.toFixed(2) + "%";
+}
+
+// ═══════════════════════════════════════════════════════
+// LIVE TICKER
+// ═══════════════════════════════════════════════════════
+let tickerVal = 0;
+setInterval(() => {
+  tickerVal = Math.min(tickerVal + DAILY_NOW / 86400, DAILY_NOW);
+  document.getElementById("ticker-today").textContent = "$" + Math.floor(tickerVal).toLocaleString();
+}, 1000);
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + id).classList.add("active");
+  event.target.classList.add("active");
+  if (id === "burden" && !window.burdenChartBuilt) buildBurdenCharts();
+  if (id === "munitions" && !window.costChartBuilt) buildCostChart();
+}
+
+// ═══════════════════════════════════════════════════════
+// BURDEN TAB
+// ═══════════════════════════════════════════════════════
+let burdenView = "perPerson";
+let burdenChartInstance = null;
+
+function setBurdenView(v) {
+  burdenView = v;
+  document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  const label = v === "perPerson"
+    ? "▶ CUMULATIVE WAR BURDEN (~$20.7B EST.) — COST PER PERSON BY BRACKET"
+    : "▶ WAR BURDEN AS % OF ANNUAL INCOME BY BRACKET";
+  document.getElementById("burden-chart-label").textContent = label;
+  updateBurdenChart();
+}
+
+function buildBurdenCharts() {
+  window.burdenChartBuilt = true;
+
+  // Stat cards
+  const b10 = burdenData[0];
+  const t1  = burdenData[10];
+  document.getElementById("b10-share").textContent = fmtMoney(b10.perPerson) + " war cost share";
+  document.getElementById("b10-pct").textContent   = fmtPct(b10.pctOfIncome) + " of annual income";
+  document.getElementById("t1-share").textContent  = fmtMoney(t1.perPerson) + " war cost share";
+  document.getElementById("t1-pct").textContent    = fmtPct(t1.pctOfIncome) + " of annual income";
+
+  // Build tax table
+  const tbody = document.getElementById("tax-tbody");
+  burdenData.forEach((d, i) => {
+    const netRate = ((d.effRate - d.avoid) * 100).toFixed(1);
+    const colName  = i === 0 ? "#e74c3c" : i === 10 ? "#2ecc71" : "#ccc";
+    const colVal   = i >= 9 ? "#2ecc71" : "#e74c3c";
+    const border   = i === 0 ? "3px solid #e74c3c" : i === 10 ? "3px solid #2ecc71" : "3px solid transparent";
+    tbody.innerHTML += `<tr style="border-left:${border}">
+      <td style="color:${colName}">${d.label}</td>
+      <td style="color:#666">${fmtMoney(d.avgIncome)}/yr</td>
+      <td style="color:${i>=9?"#2ecc71":"#f39c12"}">${netRate}%</td>
+      <td style="color:${i>=9?"#2ecc71":"#3498db"}">${(d.payroll*100).toFixed(2)}%</td>
+      <td style="color:${colVal};font-weight:bold">${fmtMoney(d.perPerson)}</td>
+      <td style="color:${i>=9?"#2ecc71":"#e8e8e8"}">${fmtPct(d.pctOfIncome)}</td>
+    </tr>`;
+  });
+
+  // Burden area chart
+  const ctx = document.getElementById("burdenChart").getContext("2d");
+  burdenChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: burdenData.map(d => d.short),
+      datasets: [{
+        label: "War Cost Per Person ($)",
+        data: burdenData.map(d => d.perPerson),
+        borderColor: "#e74c3c",
+        backgroundColor: "rgba(231,76,60,0.15)",
+        borderWidth: 2.5,
+        pointBackgroundColor: "#e74c3c",
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#0a0a0a",
+          borderColor: "#e74c3c",
+          borderWidth: 1,
+          titleColor: "#e74c3c",
+          bodyColor: "#e8e8e8",
+          callbacks: {
+            label: ctx => {
+              const d = burdenData[ctx.dataIndex];
+              return [
+                "War share: " + fmtMoney(d.perPerson),
+                "% of income: " + fmtPct(d.pctOfIncome),
+                "Net eff. rate: " + ((d.effRate - d.avoid)*100).toFixed(1) + "%",
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{color:"#555",font:{family:"'Courier New',monospace",size:10}}, grid:{color:"#111"} },
+        y: {
+          ticks: {
+            color:"#555", font:{family:"'Courier New',monospace",size:10},
+            callback: v => fmtMoney(v)
+          },
+          grid:{color:"#111"}
+        }
+      }
+    }
+  });
+
+  // Payroll chart
+  const ctx2 = document.getElementById("payrollChart").getContext("2d");
+  new Chart(ctx2, {
+    type: "line",
+    data: {
+      labels: burdenData.map(d => d.short),
+      datasets: [{
+        label: "Payroll Tax as % of Income",
+        data: burdenData.map(d => d.payroll * 100),
+        borderColor: "#3498db",
+        backgroundColor: "rgba(52,152,219,0.12)",
+        borderWidth: 2.5,
+        pointBackgroundColor: "#3498db",
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3,
+      },{
+        label: "7.65% (flat — no cap)",
+        data: burdenData.map(() => 7.65),
+        borderColor: "#e74c3c",
+        borderDash: [5,5],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels:{color:"#555",font:{family:"'Courier New',monospace",size:10}} },
+        tooltip: {
+          backgroundColor:"#0a0a0a", borderColor:"#3498db", borderWidth:1,
+          titleColor:"#3498db", bodyColor:"#e8e8e8",
+        }
+      },
+      scales: {
+        x: { ticks:{color:"#555",font:{family:"'Courier New',monospace",size:10}}, grid:{color:"#111"} },
+        y: { ticks:{color:"#555",font:{family:"'Courier New',monospace",size:10},callback:v=>v.toFixed(1)+"%"}, grid:{color:"#111"} }
+      }
+    }
+  });
+}
+
+function updateBurdenChart() {
+  if (!burdenChartInstance) return;
+  const isIncome = burdenView === "pctOfIncome";
+  burdenChartInstance.data.datasets[0].data = burdenData.map(d => isIncome ? d.pctOfIncome : d.perPerson);
+  burdenChartInstance.data.datasets[0].label = isIncome ? "Burden as % of Income" : "War Cost Per Person ($)";
+  burdenChartInstance.options.scales.y.ticks.callback = isIncome
+    ? v => v.toFixed(4) + "%"
+    : v => fmtMoney(v);
+  burdenChartInstance.update();
+}
+
+// ═══════════════════════════════════════════════════════
+// EQUIPMENT TAB
+// ═══════════════════════════════════════════════════════
+(function buildEquipTab() {
+  const totalEquip = EQUIP.reduce((s,e) => s + e.qty * e.unit, 0);
+  document.getElementById("total-equip-val").textContent = fmtMoney(totalEquip) + "+";
+
+  const tbody = document.getElementById("equip-tbody");
+  EQUIP.forEach(e => {
+    const total = e.qty * e.unit;
+    tbody.innerHTML += `<tr>
+      <td style="color:#ccc;font-weight:bold">${e.item}</td>
+      <td style="color:#f39c12;text-align:center">×${e.qty}</td>
+      <td style="color:#aaa">${fmtMoney(e.unit)}</td>
+      <td style="color:#e74c3c;font-weight:bold">${fmtMoney(total)}</td>
+      <td style="color:#555;font-size:10px">${e.cause}</td>
+      <td class="${e.conf?"confirmed":"estimated"}">${e.conf ? "✓ CONFIRMED" : "~ ESTIMATED"}</td>
+    </tr>`;
+  });
+  // Total row
+  tbody.innerHTML += `<tr style="border-top:1px solid #e74c3c;background:#111">
+    <td colspan="3" style="color:#e74c3c;font-weight:bold;padding:10px">TOTAL</td>
+    <td style="color:#e74c3c;font-weight:bold;font-size:14px">${fmtMoney(totalEquip)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+
+  // Munitions inventory
+  const inv = document.getElementById("munitions-inventory");
+  MUNITIONS_INV.forEach(m => {
+    const col = m.risk === "Critical" ? "#e74c3c" : "#f39c12";
+    inv.innerHTML += `<div style="border-left:2px solid ${col};padding-left:10px">
+      <div style="color:${col};font-size:10px;font-weight:bold">${m.item}</div>
+      <div style="color:#aaa;font-size:10px;line-height:1.8">
+        Used: ${m.used}<br>
+        Replenish: ${m.replenish}
+      </div>
+      <div style="color:${col};font-size:9px;margin-top:2px">RISK: ${m.risk}</div>
+    </div>`;
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+// COST BREAKDOWN CHART
+// ═══════════════════════════════════════════════════════
+function buildCostChart() {
+  window.costChartBuilt = true;
+
+  const ctx = document.getElementById("costChart").getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: COST_BD.map(c => c.cat),
+      datasets:[{
+        data: COST_BD.map(c => c.cost),
+        backgroundColor: COST_BD.map(c => c.color + "cc"),
+        borderColor: COST_BD.map(c => c.color),
+        borderWidth: 1,
+        borderRadius: 2,
+      }]
+    },
+    options:{
+      indexAxis:"y",
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#0a0a0a", borderColor:"#f39c12", borderWidth:1,
+          titleColor:"#f39c12", bodyColor:"#e8e8e8",
+          callbacks:{label: ctx => fmtMoney(ctx.raw)}
+        }
+      },
+      scales:{
+        x:{ticks:{color:"#555",font:{family:"'Courier New',monospace",size:10},callback:v=>fmtMoney(v)},grid:{color:"#111"}},
+        y:{ticks:{color:"#888",font:{family:"'Courier New',monospace",size:10}},grid:{color:"#111"}}
+      }
+    }
+  });
+
+  // Cards
+  const cards = document.getElementById("cost-cards");
+  COST_BD.forEach(c => {
+    cards.innerHTML += `<div style="background:#0d0d0d;border-left:3px solid ${c.color};padding:12px 14px">
+      <div style="color:${c.color};font-size:9px;letter-spacing:2px;margin-bottom:4px">${c.cat.toUpperCase()}</div>
+      <div style="font-size:18px;color:#fff;font-weight:bold;margin-bottom:6px">${fmtMoney(c.cost)}</div>
+      <div style="color:#444;font-size:10px;line-height:1.6">${c.detail}</div>
+    </div>`;
+  });
+
+  // Weapon costs
+  const wc = document.getElementById("weapon-costs");
+  WEAPONS.forEach(w => {
+    wc.innerHTML += `<div style="border-left:2px solid #2a2a2a;padding-left:10px">
+      <div style="color:#ccc;font-size:11px;font-weight:bold">${w.name}</div>
+      <div style="color:#e74c3c;font-size:16px;font-weight:bold">${w.cost}</div>
+      <div style="color:#333;font-size:9px">${w.note}</div>
+    </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TIMELINE TAB
+// ═══════════════════════════════════════════════════════
+(function buildTimeline() {
+  const el = document.getElementById("timeline-items");
+  TIMELINE.forEach((t, i) => {
+    const dot = t.today ? "#e74c3c" : i === 0 ? "#444" : "#f39c12";
+    const line = i < TIMELINE.length - 1 ? `<div class="tl-line"></div>` : "";
+    el.innerHTML += `<div class="timeline-item">
+      <div class="tl-dot-col">
+        <div class="tl-dot" style="background:${dot};border-color:${t.today?"#c0392b":"#222"}"></div>
+        ${line}
+      </div>
+      <div class="tl-card ${t.today?"today":""}">
+        <div>
+          <span style="color:${t.today?"#e74c3c":"#f39c12"};font-size:10px;font-weight:bold;margin-right:12px">${t.label}</span>
+          <span style="color:#888;font-size:11px">${t.event}</span>
+        </div>
+        <div style="text-align:right">
+          ${t.cum > 0 ? `<span style="color:#e74c3c;font-size:14px;font-weight:bold">${fmtMoney(t.cum)}</span><br><span style="color:#333;font-size:9px">cumulative est.</span>` : ""}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  const proj = document.getElementById("projections");
+  PROJECTIONS.forEach(p => {
+    proj.innerHTML += `<div class="proj-item" style="border-left-color:${p.col};border-left:2px solid ${p.col};padding-left:12px">
+      <div style="color:${p.col};font-size:17px;font-weight:bold">${p.cost}</div>
+      <div style="color:#aaa;font-size:11px">${p.scenario}</div>
+      <div style="color:#333;font-size:9px;margin-top:2px">${p.source}</div>
+    </div>`;
+  });
+})();
+
+// Build burden on page load since it's the second tab but useful default
+// (builds on first click to burden tab instead)
+</script>
+</body>
+</html>
