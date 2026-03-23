@@ -237,6 +237,7 @@ canvas{max-width:100%!important}
     <button class="tab-btn" onclick="showTab('munitions',this)">Cost Breakdown</button>
     <button class="tab-btn" onclick="showTab('timeline',this)">Timeline</button>
     <button class="tab-btn" onclick="showTab('funding',this)">Funding</button>
+    <button class="tab-btn" onclick="showTab('economic',this)">Economic Costs</button>
     <button class="tab-btn" onclick="showTab('sources',this)">Sources</button>
   </div>
 
@@ -519,6 +520,86 @@ canvas{max-width:100%!important}
   </div>
 
   <!-- ═══ SOURCES ═══ -->
+  <!-- ═══ ECONOMIC COSTS ═══ -->
+  <div id="tab-economic" class="tab-panel">
+    <div class="sl">▶ THE HIDDEN COST LAYER — WHAT EVERY AMERICAN IS PAYING BEYOND THE MILITARY BILL</div>
+    <p style="color:#666;font-size:11px;line-height:1.8;margin-bottom:18px">The direct military spend (~$22B) is what Congress debates. But the economic costs — energy, inflation, markets, credit — are what Americans feel in their wallets every day. These are not estimates: they are measured, confirmed figures from AAA, Freddie Mac, the Federal Reserve, and the IEA. <span style="color:#f39c12">Mark Zandi, chief economist at Moody's, called higher gas prices "a regressive tax, as lower-income households devote a higher share of their budget to energy"</span> — the same argument at the core of this tracker.</p>
+
+    <!-- GAS + ENERGY STAT CARDS -->
+    <div class="sl">▶ ENERGY COSTS — DIRECTLY MEASURED (AAA / GasBuddy / EIA)</div>
+    <div class="grid-auto" style="margin-bottom:20px">
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">GAS PRICE BEFORE WAR</div><div class="csv" style="color:#fff">$2.98/gal</div><div class="css">National avg Feb 26, 2026 (AAA)</div></div>
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">GAS PRICE NOW (Mar 22)</div><div class="csv" style="color:#e74c3c">$3.93/gal</div><div class="css">+$0.95/gal · +32% · highest since Sept 2023 (AAA)</div></div>
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">DIESEL PRICE NOW</div><div class="csv" style="color:#e74c3c">~$5.00/gal</div><div class="css">+$1.24–$1.34 since war began · highest since 2022 (AAA)</div></div>
+      <div class="card card-orange"><div class="csl" style="color:#f39c12">BRENT CRUDE</div><div class="csv" style="color:#f39c12">$112/bbl</div><div class="css">vs. $72/bbl pre-war · +56% · worst shock since 1973 (IEA)</div></div>
+      <div class="card card-orange"><div class="csl" style="color:#f39c12">JET FUEL</div><div class="csv" style="color:#f39c12">+83%</div><div class="css">vs. one month ago · flights grounded · costs passed to tickets (NPR)</div></div>
+      <div class="card card-orange"><div class="csl" style="color:#f39c12">LARGEST GAS SPIKE</div><div class="csv" style="color:#f39c12">+26.9%</div><div class="css">Largest single-month US increase since Hurricane Katrina (CNN/Bespoke)</div></div>
+    </div>
+
+    <!-- LIVE GAS COST CALCULATOR -->
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;padding:18px 20px;margin-bottom:20px">
+      <div class="sl">▶ YOUR PERSONAL GAS COST CALCULATOR — WAR PREMIUM</div>
+      <p style="color:#666;font-size:11px;margin-bottom:14px;line-height:1.7">The war has added ~$0.95/gallon to your gas price. Enter your vehicle details to see how much extra the war is costing you personally at the pump.</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
+        <div>
+          <div style="color:#888;font-size:10px;margin-bottom:4px">Tank size (gallons)</div>
+          <input type="number" id="ec-tank" class="cf-input" value="13" min="1" max="50" oninput="updateGasCalc()">
+        </div>
+        <div>
+          <div style="color:#888;font-size:10px;margin-bottom:4px">Fill-ups per month</div>
+          <input type="number" id="ec-fills" class="cf-input" value="4" min="1" max="30" oninput="updateGasCalc()">
+        </div>
+        <div>
+          <div style="color:#888;font-size:10px;margin-bottom:4px">Vehicle type</div>
+          <select id="ec-vtype" class="bracket-select" style="width:auto" onchange="updateGasCalc()">
+            <option value="0.95">Regular gasoline (+$0.95/gal)</option>
+            <option value="1.29">Diesel truck/SUV (+$1.29/gal avg)</option>
+          </select>
+        </div>
+      </div>
+      <div id="gas-calc-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px"></div>
+    </div>
+
+    <!-- FINANCIAL MARKETS -->
+    <div class="sl">▶ FINANCIAL MARKETS — CONFIRMED WAR IMPACT</div>
+    <div class="grid-auto" style="margin-bottom:20px">
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">DOW JONES</div><div class="csv" style="color:#e74c3c">−800 pts</div><div class="css">Single-day drop Mar 6 as oil hit $80/bbl (CNBC)</div></div>
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">S&amp;P 500</div><div class="csv" style="color:#e74c3c">−2%+ YTD</div><div class="css">New 2026 lows · "market hasn't found bottom" (CNN/Kerux Financial)</div></div>
+      <div class="card card-orange"><div class="csl" style="color:#f39c12">10-YR TREASURY YIELD</div><div class="csv" style="color:#f39c12">4.39%</div><div class="css">+30 bps since war began · highest since July (CNN/AEI)</div></div>
+      <div class="card card-orange"><div class="csl" style="color:#f39c12">30-YR MORTGAGE RATE</div><div class="csv" style="color:#f39c12">6.53%</div><div class="css">+0.53 pts since war · had been below 6% for first time since 2022 (NBC/Freddie Mac)</div></div>
+      <div class="card card-blue"><div class="csl" style="color:#3498db">GOLD</div><div class="csv" style="color:#2ecc71">↑ Rising</div><div class="css">Safe-haven demand surge (Wikipedia/IEA)</div></div>
+      <div class="card card-red"><div class="csl" style="color:#e74c3c">UNITED AIRLINES STOCK</div><div class="csv" style="color:#e74c3c">−6%</div><div class="css">Day 1 of war (Wikipedia economic impact)</div></div>
+    </div>
+
+    <!-- BROADER ECONOMIC IMPACT -->
+    <div class="sl">▶ BROADER ECONOMIC DAMAGE — CONFIRMED INDICATORS</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:20px" id="econ-impacts"></div>
+
+    <!-- REGRESSIVE IMPACT TABLE -->
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;padding:18px 20px;margin-bottom:20px">
+      <div class="sl">▶ WHY ENERGY INFLATION IS REGRESSIVE — INCOME VS. FUEL BURDEN</div>
+      <p style="color:#666;font-size:11px;margin-bottom:14px;line-height:1.7">Lower-income households spend a far higher share of their income on gasoline and energy. The war-driven +$0.95/gallon increase hits the poorest households proportionally hardest — compounding the direct tax burden shown in the Tax Burden tab.</p>
+      <div class="tbl-scroll">
+        <table class="data-table" id="regressive-table">
+          <thead><tr><th>Income Bracket</th><th>Avg Income</th><th>Est. Monthly Gas Spend (pre-war)</th><th>War Premium/Month</th><th>Premium as % of Income</th><th>Moody's Assessment</th></tr></thead>
+          <tbody id="regressive-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GLOBAL SUPPLY CHAIN -->
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;padding:18px 20px;margin-bottom:20px">
+      <div class="sl">▶ STRAIT OF HORMUZ — SUPPLY CHAIN DISRUPTION (IEA / HAPAG-LLOYD / RYSTAD)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:4px" id="hormuz-impacts"></div>
+    </div>
+
+    <!-- RECESSION RISK -->
+    <div style="background:#100000;border:1px solid #e74c3c;padding:16px 20px">
+      <div class="sl" style="color:#e74c3c">▶ RECESSION RISK — EXPERT ASSESSMENTS</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:4px" id="recession-risks"></div>
+    </div>
+  </div>
+
   <div id="tab-sources" class="tab-panel">
     <div class="sl">▶ ALL SOURCES — CLICKABLE LINKS</div>
     <div id="sources-list"></div>
@@ -731,6 +812,24 @@ const SOURCES = [
     { date:"2024", title:"Effective tax rates by quintile", pub:"Tax Policy Center", url:"https://taxpolicycenter.org", note:"" },
     { date:"2024", title:"Social Security wage base: $168,600", pub:"Social Security Administration", url:"https://ssa.gov", note:"Earnings above this cap are exempt from the 6.2% SS tax." },
   ]},
+  { cat:"ECONOMIC COSTS — ENERGY", items:[
+    { date:"Mar 22, 2026", title:"National avg gas price $3.93/gal — up 32% from $2.98 pre-war (Feb 26)", pub:"AAA / NBC News", url:"https://www.nbcnews.com/business/consumer/iran-war-mortgage-rates-stocks-gas-rcna264499", note:"Largest monthly US gas price increase since Hurricane Katrina per Bespoke Investment Group." },
+    { date:"Mar 22, 2026", title:"Diesel ~$5.00/gal — up $1.24–$1.34 since war, highest since 2022", pub:"AAA / Fortune / NPR", url:"https://fortune.com/2026/03/18/us-gas-prices-highest-level-since-2023-iran-war-diesel-aaa/", note:"Trucking companies adding hefty fuel surcharges passed to consumers." },
+    { date:"Mar 22, 2026", title:"Brent crude $112/bbl — up 56% from $72 pre-war; IEA calls this 'greatest global energy and food security challenge in history'", pub:"CNN / IEA", url:"https://www.cnn.com/2026/03/15/business/oil-prices-stocks-futures-iran", note:"Worst oil supply disruption since at least the 1970s per IEA." },
+    { date:"Mar 16, 2026", title:"Global jet fuel prices up ~83% in one month; thousands of flights grounded", pub:"NPR", url:"https://www.npr.org/2026/03/16/nx-s1-5749333/iran-war-gasoline-prices-day-17", note:"Gulf carriers struggling to return to pre-war volumes." },
+  ]},
+  { cat:"ECONOMIC COSTS — MARKETS & CREDIT", items:[
+    { date:"Mar 20, 2026", title:"S&P 500 at new 2026 lows; Dow fell 800 pts Mar 6; stock and bond markets selling off simultaneously", pub:"CNN / CNBC", url:"https://www.cnn.com/2026/03/20/investing/us-stocks-iran", note:"10-yr Treasury yield hit 4.39% — highest since July. UK 10-yr hit highest since 2008." },
+    { date:"Mar 22, 2026", title:"30-year fixed mortgage rate 6.53% — up 0.53 pts since war; had briefly hit 5.98% (below 6% for first time since 2022)", pub:"NBC News / Freddie Mac / CNN", url:"https://www.cnn.com/2026/03/05/economy/mortgage-rates", note:"Rising yields driven by inflation fears. Fed rate cuts postponed." },
+    { date:"Mar 19, 2026", title:"AEI: War raises simultaneous risk of recession, inflation, stock market correction, credit strains; 10-yr Treasury +30bps since war", pub:"American Enterprise Institute (Desmond Lachman)", url:"https://www.aei.org/economics/the-economic-consequences-of-the-iran-war/", note:"" },
+  ]},
+  { cat:"ECONOMIC COSTS — GLOBAL SUPPLY CHAIN", items:[
+    { date:"Mar 22, 2026", title:"Economic impact of 2026 Iran war — Wikipedia comprehensive summary", pub:"Wikipedia (sourced from ECB, IEA, Oxford, Ifo, Al Jazeera, Chatham House)", url:"https://en.wikipedia.org/wiki/Economic_impact_of_the_2026_Iran_war", note:"ECB postponed rate cuts Mar 19; UK inflation forecast to breach 5%; Germany, Italy at high recession risk." },
+    { date:"Mar 16, 2026", title:"Al Jazeera: Hormuz disruption — tanker traffic down ~70%, 150+ ships anchored, 21+ merchant ships attacked", pub:"Al Jazeera", url:"https://www.aljazeera.com/news/2026/3/16/the-tell-tale-signs-how-bad-has-the-iran-war-hit-the-global-economy", note:"Fertiliser (1/3 of global trade via Hormuz) prices rising ahead of spring planting season." },
+    { date:"Mar 2, 2026",  title:"Hapag-Lloyd War Risk Surcharge up to $3,500/container; LNG carrier voyage insurance +$1.5M; cargo rates spiked to 1% of value", pub:"FPRI / Hapag-Lloyd", url:"https://fpri.org", note:"" },
+    { date:"Mar 10, 2026", title:"QatarEnergy stopped LNG production after Iranian attack on Ras Laffan; Saudi Ras Tanura refinery fire from drone shrapnel", pub:"CNN", url:"https://www.cnn.com/2026/03/02/business/gas-prices-iran-war", note:"Qatar produces ~40% of world's helium used in semiconductor production." },
+    { date:"Mar 10, 2026", title:"Moody's Zandi: Higher gas prices 'act like a regressive tax' on lower-income households", pub:"Al Jazeera / NPR", url:"https://www.aljazeera.com/news/2026/3/10/us-consumers-express-dismay-over-rising-gas-prices-after-attack-on-iran", note:"" },
+  ]},
   { cat:"FORWARD COST PROJECTIONS", items:[
     { date:"Mar 2026", title:"Penn Wharton Budget Model: $50–65B (6–8 weeks), up to $210B total economic impact", pub:"Penn Wharton / Kent Smetters", url:"https://budgetmodel.wharton.upenn.edu", note:"" },
     { date:"Mar 2026", title:"CSIS: $30–40B direct if 4-week war as Trump stated", pub:"Center for Strategic and International Studies", url:"https://csis.org", note:"" },
@@ -902,6 +1001,7 @@ function showTab(id, btn) {
   if (id==='munitions'&&!window._costBuilt)    buildCostTab();
   if (id==='equipment'&&!window._equipBuilt)   buildEquipTab();
   if (id==='timeline'&&!window._tlBuilt)       buildTimeline();
+  if (id==='economic' &&!window._econBuilt)    buildEconomicTab();
   if (id==='sources' &&!window._srcBuilt)      buildSources();
 }
 
@@ -1136,6 +1236,136 @@ function buildTimeline() {
 // ═══════════════════════════════════════════════════════════════════════
 // SOURCES TAB
 // ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// ECONOMIC COSTS TAB
+// ═══════════════════════════════════════════════════════════════════════
+const ECON_IMPACTS = [
+  { icon:"⛽", title:"US Inflation Forecast", val:"+3% peak YoY 2026", body:"Oxford Economics / Al Jazeera forecast US inflation peaks at 3% YoY. Fed rate cuts now postponed indefinitely — was expected to cut twice in 2026. Bond market pricing in higher-for-longer rates.", col:"#e74c3c" },
+  { icon:"🏠", title:"Housing Market Frozen", val:"+0.53pts mortgage rate", body:"30-yr fixed mortgage climbed from 5.98% to 6.53% since war began. Had briefly dipped below 6% for first time since 2022 — a psychological threshold for homebuyers. Rising yields are driven by inflation fears, not growth. (NBC / Freddie Mac)", col:"#e74c3c" },
+  { icon:"🌍", title:"Global Recession Risk", val:"Europe high risk", body:"ECB postponed rate cuts Mar 19. Germany, Italy, Netherlands at high recession risk (Ifo Institute). UK inflation forecast to breach 5%. ECB warns of stagflation — the worst macro combination of high inflation + low growth. (Wikipedia / ECB)", col:"#f39c12" },
+  { icon:"🚢", title:"Shipping Surcharges", val:"$3,500/container", body:"Hapag-Lloyd imposed War Risk Surcharge of up to $3,500 per container from Mar 2. LNG carrier single-voyage insurance now adds $1.5M. Cargo insurance rates spiked to 1% of value. Costs pass through to all consumer goods. (FPRI / Hapag-Lloyd)", col:"#f39c12" },
+  { icon:"🌾", title:"Food & Fertiliser", val:"Prices rising", body:"~1/3 of global fertiliser trade passes through Hormuz. Price increases hitting ahead of spring planting season in Northern Hemisphere. Compounds food inflation already elevated from 2022–25. (Al Jazeera)", col:"#f39c12" },
+  { icon:"✈️", title:"Aviation Disruption", val:"Flights grounded", body:"Major Gulf carriers still struggling to return to pre-war volumes. Airspace shut or restricted. Jet fuel +83%. Airline stocks down 6%+ on Day 1. Thousands of flights grounded; summer travel already disrupted. (Al Jazeera / Wikipedia)", col:"#9b59b6" },
+  { icon:"🏗️", title:"EU Industrial Output", val:"Surcharges up 30%", body:"EU chemical and steel manufacturers imposed surcharges of up to 30% to offset surging electricity and feedstock costs. Economists warn of permanent deindustrialisation in some sectors if maritime blockade persists through summer. (Wikipedia / ECB)", col:"#9b59b6" },
+  { icon:"💼", title:"US Job Market Timing", val:"Worst backdrop since 2002", body:"US economy added just 116,000 jobs in all of 2025 — lowest outside a recession since 2002. Has lost jobs in 5 of past 9 months. JPMorgan's David Kelly: surging gas prices and weak jobs are 'a very nasty one-two punch.' (CNN)", col:"#e74c3c" },
+  { icon:"🇨🇳", title:"China Relative Insulation", val:"Diversified supply", body:"China more insulated: large renewables/nuclear buildout, diversified hydrocarbon suppliers, massive strategic reserves. Economic growth forecast to fall below 3% YoY but outperforms Europe. (Al Jazeera / Chatham House)", col:"#3498db" },
+  { icon:"🌐", title:"IEA Emergency Release", val:"400M barrels", body:"IEA pledged emergency release of 400M barrels from member nations' strategic reserves to calm markets — the largest coordinated emergency release in history. Trump confirmed US participation after initially downplaying it. (Fortune / CNN)", col:"#3498db" },
+];
+
+const HORMUZ_IMPACTS = [
+  { stat:"20%", desc:"of global oil supply normally transits Hormuz daily" },
+  { stat:"~70%", desc:"drop in tanker traffic since war began (FPRI / Reuters)" },
+  { stat:"150+", desc:"ships anchored outside strait to avoid risk" },
+  { stat:"21+", desc:"Iranian attacks on merchant vessels (CENTCOM, Mar 12)" },
+  { stat:"40%", desc:"of world's helium supply — Qatar — now disrupted (semiconductor impact)" },
+  { stat:"$1.5M", desc:"extra per voyage for LNG carrier insurance (Hapag-Lloyd)" },
+  { stat:"QatarEnergy", desc:"stopped LNG production after Iranian attack on Ras Laffan" },
+  { stat:"Saudi Ras Tanura", desc:"refinery fire from Iranian drone shrapnel — production suspended" },
+];
+
+const RECESSION_RISKS = [
+  { source:"JPMorgan Asset Mgmt (David Kelly)", quote:"Surging gas prices and weak jobs are a 'very nasty one-two punch to the economy'" },
+  { source:"AEI (Desmond Lachman)", quote:"War raises risk of recession, inflation revival, stock market correction, and credit market strains simultaneously" },
+  { source:"RSM (Joe Brusuelas)", quote:"US facing a 'short-term affordability shock' — will restrain consumption and growth even if it does not cause an end to the business cycle" },
+  { source:"Moody's (Mark Zandi)", quote:"Higher gasoline prices act like a regressive tax, as lower-income households devote a higher share of their budget to energy" },
+  { source:"Oxford Economics / Al Jazeera", quote:"Every significant spike in oil prices since 1973 has been followed by global recession — 1973, 1978, 2008 all confirm the pattern" },
+  { source:"Chatham House", quote:"IEA characterizes this as the 'greatest global energy and food security challenge in history'" },
+];
+
+// Gas burden by bracket (approximate monthly fuel spend as % of income, pre-war)
+// Based on BLS Consumer Expenditure Survey — lower brackets spend higher share on transport fuel
+const GAS_BURDEN_BY_BRACKET = [
+  { label:"Bottom 10%", avgIncome:13_000,  monthlyGalPre:30, pctIncomePre:1.04 },
+  { label:"10–20%",     avgIncome:22_000,  monthlyGalPre:34, pctIncomePre:0.72 },
+  { label:"20–30%",     avgIncome:31_000,  monthlyGalPre:40, pctIncomePre:0.60 },
+  { label:"30–40%",     avgIncome:41_000,  monthlyGalPre:46, pctIncomePre:0.50 },
+  { label:"40–50%",     avgIncome:53_000,  monthlyGalPre:52, pctIncomePre:0.42 },
+  { label:"50–60%",     avgIncome:68_000,  monthlyGalPre:56, pctIncomePre:0.30 },
+  { label:"60–70%",     avgIncome:88_000,  monthlyGalPre:60, pctIncomePre:0.22 },
+  { label:"70–80%",     avgIncome:115_000, monthlyGalPre:64, pctIncomePre:0.18 },
+  { label:"80–90%",     avgIncome:160_000, monthlyGalPre:70, pctIncomePre:0.13 },
+  { label:"90–99%",     avgIncome:300_000, monthlyGalPre:75, pctIncomePre:0.06 },
+  { label:"Top 1%",     avgIncome:1_600_000,monthlyGalPre:80, pctIncomePre:0.002 },
+];
+
+const GAS_WAR_PREMIUM = 0.95; // $/gallon war adder as of Mar 22 (AAA)
+
+function buildEconomicTab() {
+  window._econBuilt = true;
+
+  // Broader impacts cards
+  document.getElementById('econ-impacts').innerHTML = ECON_IMPACTS.map(e=>`
+    <div style="background:#080808;border-left:3px solid ${e.col};padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:16px">${e.icon}</span>
+        <span style="color:${e.col};font-size:10px;font-weight:bold;letter-spacing:1px">${e.title}</span>
+      </div>
+      <div style="color:#fff;font-size:14px;font-weight:bold;margin-bottom:6px">${e.val}</div>
+      <div style="color:#555;font-size:10px;line-height:1.7">${e.body}</div>
+    </div>`).join('');
+
+  // Hormuz impacts
+  document.getElementById('hormuz-impacts').innerHTML = HORMUZ_IMPACTS.map(h=>`
+    <div style="border-left:2px solid #3498db;padding-left:10px">
+      <div style="color:#3498db;font-size:18px;font-weight:bold">${h.stat}</div>
+      <div style="color:#888;font-size:11px">${h.desc}</div>
+    </div>`).join('');
+
+  // Recession risks
+  document.getElementById('recession-risks').innerHTML = RECESSION_RISKS.map(r=>`
+    <div style="background:#0a0000;border:1px solid #1a1a1a;padding:12px 14px">
+      <div style="color:#e74c3c;font-size:9px;letter-spacing:1px;margin-bottom:6px">${r.source}</div>
+      <div style="color:#aaa;font-size:11px;line-height:1.7;font-style:italic">"${r.quote}"</div>
+    </div>`).join('');
+
+  // Regressive gas burden table
+  const tbody = document.getElementById('regressive-tbody');
+  GAS_BURDEN_BY_BRACKET.forEach((b,i)=>{
+    const warPremiumMonth = b.monthlyGalPre * GAS_WAR_PREMIUM;
+    const warPremiumAnnual = warPremiumMonth * 12;
+    const warPctIncome = (warPremiumAnnual / b.avgIncome) * 100;
+    const isBottom = i === 0;
+    const isTop    = i === 10;
+    const col      = isBottom ? '#e74c3c' : isTop ? '#2ecc71' : '#ccc';
+    const bl       = isBottom ? '3px solid #e74c3c' : isTop ? '3px solid #2ecc71' : '3px solid transparent';
+    tbody.innerHTML += `<tr style="border-left:${bl}">
+      <td style="color:${col}">${b.label}</td>
+      <td style="color:#555">${fm(b.avgIncome)}/yr</td>
+      <td style="color:#888">~${b.monthlyGalPre} gal/mo · $${(b.monthlyGalPre*2.98).toFixed(0)}/mo</td>
+      <td style="color:${isBottom?'#e74c3c':isTop?'#2ecc71':'#f39c12'};font-weight:bold">+$${warPremiumMonth.toFixed(0)}/mo</td>
+      <td style="color:${isBottom?'#e74c3c':isTop?'#2ecc71':'#e8e8e8'};font-weight:bold">${warPctIncome.toFixed(3)}%</td>
+      <td style="color:#444;font-size:10px">${isBottom?'Highly regressive — largest proportional hit':isTop?'Negligible — fraction of 0.01% of income':'Moderate burden'}</td>
+    </tr>`;
+  });
+
+  updateGasCalc();
+}
+
+function updateGasCalc() {
+  const tank  = parseFloat(document.getElementById('ec-tank')?.value)||13;
+  const fills = parseFloat(document.getElementById('ec-fills')?.value)||4;
+  const prem  = parseFloat(document.getElementById('ec-vtype')?.value)||0.95;
+  const el    = document.getElementById('gas-calc-results');
+  if (!el) return;
+
+  const galPerMonth  = tank * fills;
+  const extraPerFill = tank * prem;
+  const extraPerMonth= galPerMonth * prem;
+  const extraPerYear = extraPerMonth * 12;
+  const warDays      = getLiveStats().elapsedDays;
+  const extraSinceWar= galPerMonth * prem * (warDays / 30.44);
+
+  el.innerHTML = [
+    { col:"#f39c12", label:"Extra per fill-up",    val:"$"+extraPerFill.toFixed(2) },
+    { col:"#f39c12", label:"Extra per month",       val:"$"+extraPerMonth.toFixed(2) },
+    { col:"#e74c3c", label:"Extra per year (annualised)", val:"$"+extraPerYear.toFixed(2) },
+    { col:"#e74c3c", label:"Extra since Feb 28",    val:"$"+extraSinceWar.toFixed(2) },
+  ].map(r=>`<div style="border-left:2px solid ${r.col};padding-left:10px">
+    <div style="color:#555;font-size:9px">${r.label}</div>
+    <div style="color:${r.col};font-size:18px;font-weight:bold">${r.val}</div>
+  </div>`).join('');
+}
+
 function buildSources() {
   window._srcBuilt = true;
   document.getElementById('sources-list').innerHTML = SOURCES.map(cat=>`
